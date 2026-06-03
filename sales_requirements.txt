@@ -1,0 +1,7 @@
+# AI Sales Intelligence Tool — Dependencies
+# No external libraries required for CLI version
+# Python 3.7+ standard library only
+
+# For web interface (optional):
+# flask==2.3.0
+# Run: pip install flask
