@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Sales Intelligence Dashboard — Deborah Musuamba</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f9fa;color:#1a1a1a;padding:1.5rem}
+.dash{max-width:1100px;margin:0 auto}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.header h1{font-size:22px;font-weight:600;color:#1a1a1a}
+.header p{font-size:13px;color:#666;margin-top:2px}
+.badge{font-size:11px;padding:4px 12px;border-radius:8px;background:#d4edda;color:#155724;font-weight:600}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+.metric{background:#fff;border-radius:10px;padding:1rem;text-align:center;border:1px solid #e9ecef}
+.metric .label{font-size:12px;color:#888;margin-bottom:4px}
+.metric .value{font-size:24px;font-weight:600;color:#1a1a1a}
+.metric .sub{font-size:11px;color:#aaa;margin-top:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:#fff;border:1px solid #e9ecef;border-radius:12px;padding:1.2rem}
+.card-title{font-size:13px;font-weight:600;color:#555;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.5px}
+.chart-wrap{position:relative;width:100%}
+.ai-card{background:#fff;border:1px solid #e9ecef;border-radius:12px;padding:1.2rem;margin-top:14px}
+.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ai-header span{font-size:16px;font-weight:600;color:#1a1a1a}
+.recs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rec{background:#f8f9fa;border-radius:8px;padding:10px 14px;font-size:13px;color:#333;display:flex;align-items:flex-start;gap:8px}
+.trend-bar{display:flex;align-items:center;gap:10px;background:#d4edda;border-radius:8px;padding:10px 14px;margin-bottom:12px}
+.trend-bar p{font-size:13px;color:#155724;font-weight:600}
+.anomaly{background:#fff3cd;border-radius:8px;padding:8px 12px;font-size:13px;color:#856404;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;font-size:12px;color:#555}
+.legend span{display:flex;align-items:center;gap:4px}
+.legend .dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.filter-row{display:flex;gap:8px;margin-bottom:1.2rem;flex-wrap:wrap}
+.filter-row select{font-size:13px;padding:7px 12px;border-radius:8px;border:1px solid #dee2e6;background:#fff;color:#333;cursor:pointer}
+.footer{text-align:center;margin-top:2rem;font-size:12px;color:#aaa}
+</style>
+</head>
+<body>
+<div class="dash">
+  <div class="header">
+    <div>
+      <h1><i class="ti ti-chart-bar" style="margin-right:8px"></i>AI Sales Intelligence Dashboard</h1>
+      <p>E-Commerce Analytics &nbsp;•&nbsp; Author: Deborah Musuamba &nbsp;•&nbsp; <a href="https://github.com/Deborahmk" target="_blank">github.com/Deborahmk</a></p>
+    </div>
+    <span class="badge"><i class="ti ti-robot" style="margin-right:4px"></i>AI Powered</span>
+  </div>
+
+  <div class="filter-row">
+    <select id="catFilter" onchange="updateDash()">
+      <option value="all">All Categories</option>
+      <option value="Electronics">Electronics</option>
+      <option value="Clothing">Clothing</option>
+      <option value="Home">Home</option>
+    </select>
+    <select id="regFilter" onchange="updateDash()">
+      <option value="all">All Regions</option>
+      <option value="North">North</option>
+      <option value="South">South</option>
+      <option value="East">East</option>
+      <option value="West">West</option>
+    </select>
+  </div>
+
+  <div class="metrics" id="metrics"></div>
+
+  <div class="grid2">
+    <div class="card">
+      <p class="card-title">Revenue by Product</p>
+      <div class="legend" id="prodLegend"></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="prodChart" role="img" aria-label="Bar chart showing revenue by product"></canvas></div>
+    </div>
+    <div class="card">
+      <p class="card-title">Sales by Category</p>
+      <div class="legend" id="catLegend"></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="catChart" role="img" aria-label="Doughnut chart showing sales by category"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <p class="card-title">Revenue by Region</p>
+      <div class="legend" id="regLegend"></div>
+      <div class="chart-wrap" style="height:200px"><canvas id="regChart" role="img" aria-label="Bar chart showing revenue by region"></canvas></div>
+    </div>
+    <div class="card">
+      <p class="card-title">Daily Revenue Trend</p>
+      <div class="chart-wrap" style="height:200px"><canvas id="trendChart" role="img" aria-label="Line chart showing daily revenue trend"></canvas></div>
+    </div>
+  </div>
+
+  <div class="ai-card">
+    <div class="ai-header">
+      <i class="ti ti-brain" style="font-size:20px;color:#185FA5"></i>
+      <span>AI Insights & Recommendations</span>
+    </div>
+    <div class="trend-bar" id="trendBar"></div>
+    <div id="anomalies"></div>
+    <div class="recs" id="recs"></div>
+  </div>
+
+  <div class="footer">AI Sales Intelligence Tool &nbsp;•&nbsp; Built with Python & Chart.js &nbsp;•&nbsp; Deborah Musuamba 2026</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const RAW=[
+  {date:"2026-01-01",product:"Laptop",category:"Electronics",units:5,price:999.99,region:"North"},
+  {date:"2026-01-01",product:"T-Shirt",category:"Clothing",units:20,price:29.99,region:"South"},
+  {date:"2026-01-02",product:"Headphones",category:"Electronics",units:8,price:149.99,region:"East"},
+  {date:"2026-01-02",product:"Jeans",category:"Clothing",units:15,price:59.99,region:"West"},
+  {date:"2026-01-03",product:"Laptop",category:"Electronics",units:3,price:999.99,region:"South"},
+  {date:"2026-01-03",product:"Coffee Maker",category:"Home",units:10,price:79.99,region:"North"},
+  {date:"2026-01-04",product:"Sneakers",category:"Clothing",units:25,price:89.99,region:"East"},
+  {date:"2026-01-04",product:"Tablet",category:"Electronics",units:6,price:499.99,region:"West"},
+  {date:"2026-01-05",product:"Blender",category:"Home",units:12,price:49.99,region:"North"},
+  {date:"2026-01-05",product:"Headphones",category:"Electronics",units:4,price:149.99,region:"South"},
+  {date:"2026-01-06",product:"T-Shirt",category:"Clothing",units:30,price:29.99,region:"West"},
+  {date:"2026-01-06",product:"Laptop",category:"Electronics",units:7,price:999.99,region:"East"},
+  {date:"2026-01-07",product:"Coffee Maker",category:"Home",units:8,price:79.99,region:"South"},
+  {date:"2026-01-07",product:"Sneakers",category:"Clothing",units:18,price:89.99,region:"North"},
+  {date:"2026-01-08",product:"Tablet",category:"Electronics",units:9,price:499.99,region:"East"},
+];
+const COLORS=["#185FA5","#0F6E56","#D85A30","#BA7517","#993556","#534AB7","#639922","#A32D2D"];
+const charts={};
+function getData(){
+  const cat=document.getElementById('catFilter').value;
+  const reg=document.getElementById('regFilter').value;
+  return RAW.filter(r=>(cat==='all'||r.category===cat)&&(reg==='all'||r.region===reg)).map(r=>({...r,revenue:+(r.units*r.price).toFixed(2)}));
+}
+function groupBy(data,key){return data.reduce((acc,r)=>{acc[r[key]]=(acc[r[key]]||0)+r.revenue;return acc;},{});}
+function makeChart(id,type,labels,datasets,opts={}){
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(document.getElementById(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},...opts}});
+}
+function makeLegend(elId,labels,colors){
+  document.getElementById(elId).innerHTML=labels.map((l,i)=>`<span><span class="dot" style="background:${colors[i%colors.length]}"></span>${l}</span>`).join('');
+}
+function updateDash(){
+  const data=getData();
+  if(!data.length){document.getElementById('metrics').innerHTML='<p style="grid-column:1/-1;color:#888;font-size:13px">No data for this filter.</p>';return;}
+  const totalRev=data.reduce((s,r)=>s+r.revenue,0);
+  const totalUnits=data.reduce((s,r)=>s+r.units,0);
+  const prodRev=groupBy(data,'product');
+  const topProd=Object.entries(prodRev).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric"><div class="label">Total Revenue</div><div class="value">$${totalRev.toLocaleString('en-US',{maximumFractionDigits:0})}</div><div class="sub">${data.length} records</div></div>
+    <div class="metric"><div class="label">Units Sold</div><div class="value">${totalUnits.toLocaleString()}</div><div class="sub">all products</div></div>
+    <div class="metric"><div class="label">Top Product</div><div class="value" style="font-size:16px">${topProd[0]}</div><div class="sub">$${topProd[1].toLocaleString('en-US',{maximumFractionDigits:0})}</div></div>
+    <div class="metric"><div class="label">Avg per Sale</div><div class="value">$${Math.round(totalRev/data.length).toLocaleString()}</div><div class="sub">per transaction</div></div>`;
+  const prodEntries=Object.entries(prodRev).sort((a,b)=>b[1]-a[1]);
+  makeChart('prodChart','bar',prodEntries.map(e=>e[0]),[{data:prodEntries.map(e=>Math.round(e[1])),backgroundColor:prodEntries.map((_,i)=>COLORS[i%COLORS.length]),borderRadius:4}],{scales:{x:{ticks:{font:{size:11}}},y:{ticks:{callback:v=>'$'+v.toLocaleString(),font:{size:11}}}}});
+  makeLegend('prodLegend',prodEntries.map(e=>e[0]),COLORS);
+  const catRev=groupBy(data,'category');
+  const catEntries=Object.entries(catRev).sort((a,b)=>b[1]-a[1]);
+  makeChart('catChart','doughnut',catEntries.map(e=>e[0]),[{data:catEntries.map(e=>Math.round(e[1])),backgroundColor:COLORS.slice(0,catEntries.length),borderWidth:0}]);
+  makeLegend('catLegend',catEntries.map(e=>`${e[0]} $${Math.round(e[1]).toLocaleString()}`),COLORS);
+  const regRev=groupBy(data,'region');
+  const regEntries=Object.entries(regRev).sort((a,b)=>b[1]-a[1]);
+  makeChart('regChart','bar',regEntries.map(e=>e[0]),[{data:regEntries.map(e=>Math.round(e[1])),backgroundColor:COLORS.slice(2,2+regEntries.length),borderRadius:4}],{scales:{x:{ticks:{font:{size:11}}},y:{ticks:{callback:v=>'$'+v.toLocaleString(),font:{size:11}}}}});
+  makeLegend('regLegend',regEntries.map(e=>`${e[0]} $${Math.round(e[1]).toLocaleString()}`),COLORS.slice(2));
+  const dateRev={};
+  data.forEach(r=>{dateRev[r.date]=(dateRev[r.date]||0)+r.revenue;});
+  const dateEntries=Object.entries(dateRev).sort((a,b)=>a[0]>b[0]?1:-1);
+  makeChart('trendChart','line',dateEntries.map(e=>e[0].slice(5)),[{data:dateEntries.map(e=>Math.round(e[1])),borderColor:'#185FA5',backgroundColor:'rgba(24,95,165,0.08)',fill:true,tension:0.4,pointRadius:4,pointBackgroundColor:'#185FA5'}],{scales:{x:{ticks:{font:{size:11}}},y:{ticks:{callback:v=>'$'+v.toLocaleString(),font:{size:11}}}}});
+  const revenues=data.map(r=>r.revenue);
+  const mean=revenues.reduce((s,v)=>s+v,0)/revenues.length;
+  const stdev=Math.sqrt(revenues.map(v=>Math.pow(v-mean,2)).reduce((s,v)=>s+v,0)/revenues.length);
+  const anomalies=data.filter(r=>Math.abs((r.revenue-mean)/stdev)>1.5);
+  const mid=Math.floor(dateEntries.length/2);
+  const fh=dateEntries.slice(0,mid).reduce((s,e)=>s+e[1],0)/mid;
+  const sh=dateEntries.slice(mid).reduce((s,e)=>s+e[1],0)/(dateEntries.length-mid);
+  const change=((sh-fh)/fh*100).toFixed(1);
+  document.getElementById('trendBar').innerHTML=change>0?`<i class="ti ti-trending-up" style="font-size:20px;color:#155724"></i><p>Upward trend (+${change}%) — Sales are growing. Recommend increasing inventory.</p>`:`<i class="ti ti-trending-down" style="font-size:20px;color:#721c24"></i><p>Downward trend (${change}%) — Review pricing strategy.</p>`;
+  document.getElementById('anomalies').innerHTML=anomalies.slice(0,2).map(a=>`<div class="anomaly"><i class="ti ti-alert-triangle"></i>Anomaly: ${a.product} on ${a.date} — $${Math.round(a.revenue).toLocaleString()} (unusually high)</div>`).join('');
+  const topCat=catEntries[0][0];const topReg=regEntries[0][0];const botProd=prodEntries[prodEntries.length-1][0];
+  document.getElementById('recs').innerHTML=[
+    `<i class="ti ti-trophy" style="color:#BA7517;flex-shrink:0"></i>Focus marketing on <strong>${topProd[0]}</strong> — highest revenue product`,
+    `<i class="ti ti-package" style="color:#0F6E56;flex-shrink:0"></i>Expand <strong>${topCat}</strong> inventory — top performing category`,
+    `<i class="ti ti-map-pin" style="color:#185FA5;flex-shrink:0"></i>Prioritize <strong>${topReg}</strong> region — highest sales volume`,
+    `<i class="ti ti-alert-circle" style="color:#A32D2D;flex-shrink:0"></i>Review strategy for <strong>${botProd}</strong> — lowest revenue`,
+    `<i class="ti ti-discount" style="color:#534AB7;flex-shrink:0"></i>Create bundle deals to increase average order value`,
+    `<i class="ti ti-search" style="color:#D85A30;flex-shrink:0"></i>${anomalies.length} anomal${anomalies.length===1?'y':'ies'} flagged — investigate unusual transactions`,
+  ].map(r=>`<div class="rec">${r}</div>`).join('');
+}
+updateDash();
+</script>
+</body>
+</html>
